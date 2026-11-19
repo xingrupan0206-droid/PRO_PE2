@@ -2,18 +2,23 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\User;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_the_homepage_displays_the_welcome_page_for_guests(): void
     {
-        $response = $this->get('/');
+        $this->get('/')
+            ->assertOk()
+            ->assertViewIs('welcome');
+    }
 
-        $response->assertStatus(200);
+    public function test_the_homepage_displays_the_welcome_page_for_authenticated_users(): void
+    {
+        $this->actingAs(User::factory()->make())
+            ->get('/')
+            ->assertOk()
+            ->assertViewIs('welcome');
     }
 }
