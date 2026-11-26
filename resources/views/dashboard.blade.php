@@ -29,6 +29,9 @@
     <section>
         <h1>Welkom, {{ auth()->user()->name }}</h1>
         <p>Je bent ingelogd als {{ auth()->user()->role?->name ?? 'gebruiker' }}.</p>
+        @can('view-appointment-overview')
+            <p><a href="{{ route('afspraken.overzicht') }}">Afsprakenoverzicht</a></p>
+        @endcan
     </section>
 </main>
 </body>
