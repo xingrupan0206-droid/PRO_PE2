@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PatientController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::middleware('role:admin,tandarts,mondhygienist,assistent')->group(function () {
+        Route::get('/facturen', [InvoiceController::class, 'index'])->name('invoices.index');
         Route::get('/patienten', [PatientController::class, 'index'])->name('patients.index');
     });
 });
