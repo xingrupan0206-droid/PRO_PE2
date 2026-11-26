@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Employee;
-use App\Models\Patient;
-use App\Models\Role;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -55,6 +52,23 @@ class User extends Authenticatable
             $this->prefix,
             $this->last_name,
         ]))) ?: (string) ($this->attributes['name'] ?? ''));
+    }
+
+    /**
+     * Role names that belong to staff of the practice.
+     *
+     * @var list<string>
+     */
+    public const STAFF_ROLES = ['admin', 'tandarts', 'mondhygienist', 'assistent'];
+
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->role?->name, $roles, true);
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->hasRole(...self::STAFF_ROLES);
     }
 
     public function role(): BelongsTo
