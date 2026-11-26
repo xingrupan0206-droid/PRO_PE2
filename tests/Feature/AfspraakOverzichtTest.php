@@ -67,6 +67,33 @@ class AfspraakOverzichtTest extends TestCase
             ->assertDontSee('Tijdstip');
     }
 
+    public function test_status_filter_only_shows_appointments_with_the_selected_status(): void
+    {
+        $this->seed();
+        $employee = User::findOrFail(2);
+
+        $response = $this->actingAs($employee)
+            ->get(route('afspraken.overzicht', ['status' => 'cancelled']));
+
+        $response->assertOk()
+            ->assertViewHas('statusFilter', 'cancelled')
+            ->assertViewHas('afspraken', fn (Collection $afspraken): bool => $afspraken->count() === 1
+                && $afspraken->first()['status'] === 'geannuleerd')
+            ->assertSee('30-11-2026');
+    }
+
+    public function test_unknown_status_filter_shows_all_appointments(): void
+    {
+        $this->seed();
+        $employee = User::findOrFail(2);
+
+        $this->actingAs($employee)
+            ->get(route('afspraken.overzicht', ['status' => 'onbekend']))
+            ->assertOk()
+            ->assertViewHas('statusFilter', null)
+            ->assertViewHas('afspraken', fn (Collection $afspraken): bool => $afspraken->count() === 7);
+    }
+
     public function test_database_failure_during_authentication_shows_message_instead_of_error_page(): void
     {
         $this->seed();

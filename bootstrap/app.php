@@ -44,10 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 || str_contains($message, 'unable to open database file');
         };
 
-        $renderAfspraakFout = fn (): Response => response()->view('afspraken.overzicht', [
-            'afspraken' => collect(),
-            'foutmelding' => Read::FOUTMELDING,
-        ]);
+        $renderAfspraakFout = fn (): Response => response()->view('afspraken.overzicht', Read::foutData());
 
         $exceptions->render(function (QueryException $exception, Request $request) use ($isDatabaseConnectionFailure, $renderAfspraakFout): Response|false {
             if (! $request->routeIs('afspraken.overzicht') || ! $isDatabaseConnectionFailure($exception)) {

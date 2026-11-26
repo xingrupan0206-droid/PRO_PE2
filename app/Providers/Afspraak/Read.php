@@ -5,6 +5,7 @@ namespace App\Providers\Afspraak;
 use Carbon\Carbon;
 use Illuminate\Database\ConnectionException;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -24,12 +25,18 @@ class Read
     ];
 
     /**
-     * @return array{afspraken: Collection<int, array{datum: string, tijdstip: string, medewerker: string, klant: string, status: string}>, foutmelding: string|null}
+     * @return array{afspraken: Collection<int, array{datum: string, tijdstip: string, medewerker: string, klant: string, status: string}>, foutmelding: string|null, statusFilter: string|null, statusLabels: array<string, string>}
      */
-    public function overzicht(): array
+    public function overzicht(Request $request): array
     {
+        $statusFilter = $request->string('status')->toString();
+
+        if (! array_key_exists($statusFilter, self::STATUS_LABELS)) {
+            $statusFilter = null;
+        }
+
         try {
-            $afspraken = DB::connection($this->verbinding)
+            $query = DB::connection($this->verbinding)
                 ->table('appointments')
                 ->join('employees', 'appointments.employee_id', '=', 'employees.id')
                 ->join('users as employee_users', 'employees.user_id', '=', 'employee_users.id')
@@ -43,19 +50,39 @@ class Read
                     'patient_users.name as patient_name',
                 ])
                 ->orderBy('appointments.starts_at')
-                ->orderBy('appointments.id')
-                ->get()
+                ->orderBy('appointments.id');
+
+            if ($statusFilter !== null) {
+                $query->where('appointments.status', $statusFilter);
+            }
+
+            $afspraken = $query->get()
                 ->map(fn (object $afspraak): array => $this->mapAfspraak($afspraak));
 
-            return ['afspraken' => $afspraken, 'foutmelding' => null];
+            return [
+                'afspraken' => $afspraken,
+                'foutmelding' => null,
+                'statusFilter' => $statusFilter,
+                'statusLabels' => self::STATUS_LABELS,
+            ];
         } catch (QueryException|ConnectionException $exception) {
             report($exception);
 
-            return [
-                'afspraken' => collect(),
-                'foutmelding' => self::FOUTMELDING,
-            ];
+            return self::foutData();
         }
+    }
+
+    /**
+     * @return array{afspraken: Collection<int, array{datum: string, tijdstip: string, medewerker: string, klant: string, status: string}>, foutmelding: string, statusFilter: null, statusLabels: array<string, string>}
+     */
+    public static function foutData(): array
+    {
+        return [
+            'afspraken' => collect(),
+            'foutmelding' => self::FOUTMELDING,
+            'statusFilter' => null,
+            'statusLabels' => self::STATUS_LABELS,
+        ];
     }
 
     /**
