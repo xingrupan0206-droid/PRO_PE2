@@ -17,12 +17,19 @@
         button { width: 100%; padding: 12px; border: 0; border-radius: 8px; background: #0369a1; color: white; font: inherit; font-weight: 700; cursor: pointer; }
         button:hover { background: #075985; }
         .error { margin-top: 6px; color: #b91c1c; font-size: .9rem; }
+        .alert { margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; border: 1px solid #bbf7d0; background: #f0fdf4; color: #166534; }
+        .switch { margin: 20px 0 0; text-align: center; }
+        .switch a { color: #0369a1; font-weight: 600; }
     </style>
 </head>
 <body>
 <main>
     <h1>Welkom bij SmilePro</h1>
     <p>Log in met je praktijkaccount.</p>
+
+    @if (session('status'))
+        <div class="alert" role="status">{{ session('status') }}</div>
+    @endif
 
     <form method="POST" action="{{ route('login.store') }}">
         @csrf
@@ -45,6 +52,10 @@
 
         <button type="submit">Inloggen</button>
     </form>
+
+    @if (Route::has('register'))
+        <p class="switch">Nog geen account? <a href="{{ route('register') }}">Registreer hier</a></p>
+    @endif
 </main>
 </body>
 </html>
